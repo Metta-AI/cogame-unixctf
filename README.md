@@ -24,11 +24,27 @@ python3 -m cogame_unixctf build --seed 0 --reveal  # build one env, show flags+r
 python3 -m cogame_unixctf rollout --agent oracle   # ceiling baseline: recovers 8/8
 python3 -m cogame_unixctf rollout --agent random   # floor baseline: ~0/8
 python3 -m cogame_unixctf play --seed 0            # play it yourself
+python3 -m cogame_unixctf race --seed 1 --verbose  # multi-agent race in one container
 ```
 
 No dependencies beyond the Python standard library and common Unix tools
 (`base64`, `gzip`, `tar`, `openssl`, `sqlite3`, …). Techniques that need a tool
 or OS you don't have are detected and skipped, never faked.
+
+## Watch it race
+
+A multi-agent variant runs several agents in **one shared container**, competing to
+claim the eight flags — first to surface a token wins it exclusively, so a slower
+agent gets sniped a tick later. Three heuristic skill tiers (novice → journeyman →
+expert) stand in for the paper's base → GRPO → GRPO+SFT competence gradient (these
+are hand-written heuristics, not the trained models).
+
+- **[viz/unixctf-race.html](viz/unixctf-race.html)** — a self-contained, replayable
+  esports-style visualizer: a flag board that flips to the claimant's colour, three
+  lane terminals typing real commands, a shared 18-tick clock. Hosted copy:
+  <https://claude.ai/code/artifact/9f0cd36a-66e6-455e-879e-c6f6e5d2cd47>
+- `python3 -m cogame_unixctf race --json run.json` writes the transcript the page replays.
+- Details in [viz/README.md](viz/README.md).
 
 ## How it maps to the paper
 

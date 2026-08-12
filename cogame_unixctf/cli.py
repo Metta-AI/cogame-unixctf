@@ -13,11 +13,17 @@ import argparse
 import sys
 from collections import Counter
 
+import json
+
 from . import agents
 from .environment import Environment
+from .heuristic import HeuristicSolver, make_solver
+from .race import AgentSpec, Race
 from .rl_env import UnixCTFEnv
 from .techniques import all_techniques, available_techniques, current_platform
 from .verifier import validate_library
+
+_RACE_COLORS = ["#38bdf8", "#f472b6", "#a3e635", "#fbbf24"]
 
 
 def cmd_list(args) -> int:
@@ -81,6 +87,45 @@ def cmd_rollout(args) -> int:
     return 0
 
 
+def cmd_race(args) -> int:
+    skills = {"novice": 1, "journeyman": 2, "expert": 3}
+    names = [n.strip() for n in args.agents.split(",") if n.strip()]
+    specs = []
+    for i, n in enumerate(names):
+        skill = skills.get(n, 2)
+        specs.append(
+            AgentSpec(
+                name=n,
+                policy=make_solver(skill, seed=args.seed * 1000 + i),
+                color=_RACE_COLORS[i % len(_RACE_COLORS)],
+                priority=skill,  # same-tick ties go to the more capable agent
+            )
+        )
+    race = Race(seed=args.seed, agents=specs, turn_budget=args.turns)
+    try:
+        rec = race.run()
+    finally:
+        race.close()
+
+    print(f"seed {rec.seed}   {rec.role} host {rec.hostname}   flags {rec.n_flags}   budget {rec.turn_budget}\n")
+    for a in rec.agents:
+        bar = "#" * a["score"] + "." * (rec.n_flags - a["score"])
+        print(f"  {a['name']:<12} [{bar}] {a['score']}/{rec.n_flags}")
+    print(f"\nwinner: {rec.winner or '(none)'}   ticks: {len(rec.ticks)}")
+    if args.verbose:
+        for tick in rec.ticks:
+            for m in tick["moves"]:
+                if m["claims"]:
+                    who = rec.agents[m["agent"]]["name"]
+                    fams = ",".join(c["family"] for c in m["claims"])
+                    print(f"  tick {tick['t']:>2}  {who:<12} claims {fams}")
+    if args.json:
+        with open(args.json, "w") as fh:
+            json.dump(rec.to_dict(), fh, indent=2)
+        print(f"\nwrote {args.json}")
+    return 0
+
+
 def cmd_play(args) -> int:
     env = UnixCTFEnv(seed=args.seed, include_live=args.live)
     brief = env.reset()
@@ -129,6 +174,14 @@ def main(argv=None) -> int:
     sp.add_argument("--live", action="store_true")
     sp.add_argument("--verbose", action="store_true")
     sp.set_defaults(func=cmd_rollout)
+
+    sp = sub.add_parser("race", help="run several agents in one shared environment, racing to claim flags")
+    sp.add_argument("--seed", type=int, default=0)
+    sp.add_argument("--agents", default="novice,journeyman,expert", help="comma-separated skill tiers")
+    sp.add_argument("--turns", type=int, default=18)
+    sp.add_argument("--verbose", action="store_true", help="print each claim as it happens")
+    sp.add_argument("--json", help="write the race transcript to this path")
+    sp.set_defaults(func=cmd_race)
 
     sp = sub.add_parser("play", help="interactive shell session against one environment")
     sp.add_argument("--seed", type=int, default=0)

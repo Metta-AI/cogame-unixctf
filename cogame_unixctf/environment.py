@@ -31,6 +31,7 @@ class PlantedFlag:
     recovery_cmd: str  # runs with cwd = root/subdir
     artifacts: list[str] = field(default_factory=list)
     found: bool = False
+    claimed_by: int | None = None  # in a race: which agent surfaced it first
 
     def oracle_command(self) -> str:
         """A single command that prints the token, runnable from anywhere in the
@@ -117,6 +118,17 @@ class Environment:
         newly = []
         for f in self.flags:
             if not f.found and f.token in output:
+                f.found = True
+                newly.append(f)
+        return newly
+
+    def claim_output(self, agent_id: int, output: str) -> list[PlantedFlag]:
+        """Race semantics: the first agent to surface a token claims it
+        exclusively. A later agent recovering the same flag scores nothing."""
+        newly = []
+        for f in self.flags:
+            if f.claimed_by is None and f.token in output:
+                f.claimed_by = agent_id
                 f.found = True
                 newly.append(f)
         return newly

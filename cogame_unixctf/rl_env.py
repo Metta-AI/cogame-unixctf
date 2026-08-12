@@ -89,15 +89,22 @@ class UnixCTFEnv:
             header += " | +" + ",".join(f.technique_id for f in newly)
         header += f" | exit {res.exit_code}]"
         observation = header + "\n" + res.output
-        return StepResult(observation, reward, done, self._info(newly))
+        return StepResult(observation, reward, done, self._info(command, res, newly))
 
-    def _info(self, newly=None) -> dict:
+    def _info(self, command="", res=None, newly=None) -> dict:
         assert self.env is not None
         return {
             "turns_used": self.turns_used,
             "flags_found": sum(1 for f in self.env.flags if f.found),
             "n_flags": self.n_flags,
-            "newly_found": [f.technique_id for f in (newly or [])],
+            "command": command,
+            "exit_code": res.exit_code if res else None,
+            "output": res.output if res else "",
+            "timed_out": res.timed_out if res else False,
+            "newly_found": [
+                {"index": f.index, "technique_id": f.technique_id, "family": f.family, "token": f.token}
+                for f in (newly or [])
+            ],
         }
 
     def score(self) -> float:
