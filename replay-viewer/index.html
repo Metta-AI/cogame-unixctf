@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unix-CTF — Replay</title>
+<style>
+  :root{ --ink:#0a0e14; --panel:#121722; --line:#1e2530; --line2:#2a3342;
+         --text:#dbe2ec; --muted:#79879b; --gold:#f5c542;
+         --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--ink);color:var(--text);font-family:var(--mono);overflow:hidden}
+  #app{max-width:1040px;margin:0 auto;height:100%;display:flex;flex-direction:column;gap:12px;
+       padding:18px 20px;justify-content:center}
+  #stagewrap{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;
+             background:var(--ink);box-shadow:0 24px 60px -30px #000}
+  #stage{display:block;width:100%;height:auto}
+  #stagewrap::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.10) 2px 3px);
+    mix-blend-mode:multiply;opacity:.5}
+  #transport{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  button{font-family:var(--mono);font-size:13px;color:var(--text);background:var(--panel);
+    border:1px solid var(--line2);border-radius:5px;padding:7px 13px;cursor:pointer}
+  button:hover{border-color:var(--muted)}
+  button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  #play{min-width:44px;font-size:14px}
+  #scrub{flex:1;min-width:160px;accent-color:var(--gold);cursor:pointer}
+  #pos{font-variant-numeric:tabular-nums;color:var(--muted);min-width:66px;text-align:center;font-size:13px}
+  #seeds{display:flex;gap:6px;align-items:center;margin-left:auto}
+  #seeds .lab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .seedbtn{padding:6px 10px;font-size:12px}
+  .seedbtn.on{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--panel))}
+  #err{color:#f87171;font-size:12px;min-height:16px}
+  .foot{font-size:11.5px;color:#48566a;line-height:1.6}
+  .foot b{color:var(--muted);font-weight:600}
+  @media (prefers-reduced-motion:reduce){ #stagewrap::after{display:none} }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stagewrap"><canvas id="stage" width="2000" height="1240"></canvas></div>
+  <div id="transport">
+    <button id="play" aria-label="Play/pause">▶</button>
+    <input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Timeline scrubber">
+    <span id="pos">0 / 0</span>
+    <button id="speed" aria-label="Playback speed">1×</button>
+    <span id="seeds"><span class="lab">Run</span></span>
+  </div>
+  <div id="err"></div>
+  <p class="foot">Three shell agents — <b>novice</b>, <b>journeyman</b>, <b>expert</b> — race in one
+    Linux container to claim eight flags, each behind a different Unix feature. The replay is decoded
+    and normalized in a <b>Nim→wasm</b> module; the stage renders the wasm frame stream.</p>
+</div>
+<script src="./unixctf_replay.js"></script>
+<script src="./renderer.js"></script>
+<script src="./static_replay.js"></script>
+</body>
+</html>

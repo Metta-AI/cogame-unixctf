@@ -39,12 +39,15 @@ agent gets sniped a tick later. Three heuristic skill tiers (novice → journeym
 expert) stand in for the paper's base → GRPO → GRPO+SFT competence gradient (these
 are hand-written heuristics, not the trained models).
 
-- **[viz/unixctf-race.html](viz/unixctf-race.html)** — a self-contained, replayable
-  esports-style visualizer: a flag board that flips to the claimant's colour, three
-  lane terminals typing real commands, a shared 18-tick clock. Hosted copy:
+- **[replay-viewer/](replay-viewer/)** — the repo-native viewer, following the coworld
+  cogame convention: the transcript is decoded and normalized in a **Nim → wasm** module,
+  and a JS renderer draws it to one **fixed canvas** with a **scrubber** (play / speed /
+  seed). Build with `./tools/build_replay_viewer.sh`, serve over http. See
+  [replay-viewer/README.md](replay-viewer/README.md).
+- **[viz/unixctf-race.html](viz/unixctf-race.html)** — a dependency-free HTML/JS variant of
+  the same race that can be hosted as a static artifact (wasm can't, under a strict CSP):
   <https://claude.ai/code/artifact/9f0cd36a-66e6-455e-879e-c6f6e5d2cd47>
-- `python3 -m cogame_unixctf race --json run.json` writes the transcript the page replays.
-- Details in [viz/README.md](viz/README.md).
+- `python3 -m cogame_unixctf race --json run.json` writes the transcript both viewers replay.
 
 ## How it maps to the paper
 

@@ -3,3 +3,8 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 .venv/
+
+# replay-viewer build outputs (produced by tools/build_replay_viewer.sh)
+replay-viewer/dist/
+replay-viewer/unixctf_replay.js
+replay-viewer/unixctf_replay.wasm
